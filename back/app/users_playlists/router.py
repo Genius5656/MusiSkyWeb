@@ -1,0 +1,128 @@
+from fastapi import FastAPI, HTTPException, APIRouter, Depends
+from typing import List
+from fastapi.responses import JSONResponse
+from app.media_interaction import save_image, convert_image_to_bytes, delete_file_by_path
+from app.exceptions import NoPlaylistException, NoUserException, NoUserPlaylistException
+from app.users_playlists.dao import UsersPlaylistsDAO
+from app.users.dependensies import get_current_user
+from app.users.models import User
+from app.users.dao import UsersDAO
+from app.playlists.dao import PlaylistsDAO
+from app.users_playlists.schemas import UsersPlaylistsCreate, UsersPlaylistsRead, UsersPlaylistsUpdate, UsersPlaylistsDelete
+
+router = APIRouter(prefix='/users_playlists', tags=['UsersPlaylists'])
+
+
+@router.get("/userPlaylist/playlists")
+async def get_playlists_by_user_id(current_user: User = Depends(get_current_user)):
+    """Эндпоинт для получения всех плейлистов пользователя"""
+
+    user_playlist_all = await UsersPlaylistsDAO.find_all(user_id=current_user.id)
+    sorted_tp_list = sorted(user_playlist_all, key=lambda trackPlaylist: trackPlaylist['position'])
+
+    playlists_list = []
+    for user_playlist in sorted_tp_list:
+        playlist = await PlaylistsDAO.find_one_or_none_by_id(user_playlist.playlist_id)
+        playlists_list.append(playlist)
+    
+    return playlists_list
+
+
+@router.post("/addUserPlaylist")
+async def add_user_playlist(data: UsersPlaylistsCreate):
+    """Эндпоинт для добавления плейлиста пользователю"""
+
+    if not(await UsersDAO.find_one_or_none_by_id(data.user_id)):
+        raise NoUserException
+    if not(await PlaylistsDAO.find_one_or_none_by_id(data.playlist_id)):
+        raise NoPlaylistException
+    
+    user_playlist_all = await UsersPlaylistsDAO.find_all(user_id=data.user_id)
+    position = len(user_playlist_all) + 1
+    
+    user_playlist_data = {
+        'user_id': data.user_id,
+        'playlist_id': data.playlist_id,
+        'position': position
+    }
+
+    user_playlist = await UsersPlaylistsDAO.add(**user_playlist_data)
+
+    return JSONResponse(
+        status_code=200,
+        content={
+            'message': 'UserPlaylist added successfully',
+            'playlist_id': user_playlist.id,
+            'user_id': user_playlist.id,
+            'position': position
+        }
+    )
+
+
+@router.put("/updatePlaylistsPosition")
+async def update_playlists_position(data: UsersPlaylistsUpdate):
+    """Эндпоинт для изменения позиции плейлиста у пользователя"""
+
+    if not(await UsersDAO.find_one_or_none_by_id(data.user_id)):
+        raise NoUserException
+    if not(await PlaylistsDAO.find_one_or_none_by_id(data.playlist_id)):
+        raise NoPlaylistException
+
+    up_filter = {
+        'user_id': data.user_id,
+        'playlist_id': data.playlist_id
+    }
+
+    db_playlist_user = await UsersPlaylistsDAO.find_one_or_none(**up_filter)
+    all_playlist_users = await UsersPlaylistsDAO.find_all(user_id=data.user_id)
+
+    old_pos = db_playlist_user.position
+    new_pos = data.position
+
+    try:
+        if new_pos < old_pos:
+            for playlist_user in all_playlist_users:
+                if (playlist_user.position >= new_pos) and (playlist_user.position < old_pos):
+                    user_playlist_update = await UsersPlaylistsDAO.update(playlist_user, {'postion': (playlist_user.position + 1)})
+        else:
+            for playlist_user in all_playlist_users:
+                if (playlist_user.position > new_pos) and (playlist_user.position <= old_pos):
+                    user_playlist_update = await UsersPlaylistsDAO.update(playlist_user, {'postion': (playlist_user.position - 1)})
+
+    except Exception as e:
+        print(f"/updatePlaylistsPosition Exception: {str(e)}")
+        raise
+    
+    user_playlist = await UsersPlaylistsDAO.update(db_playlist_user, {'position': new_pos})
+    return JSONResponse(
+        status_code=200,
+        content={
+            'message': 'UserPlaylist position updated successfully',
+            'playlist_id': user_playlist.playlist_id,
+            'user_id': user_playlist.user_id,
+            'position': new_pos
+        }
+    )
+
+
+@router.delete("/deleteUserPlaylist", response_model=UsersPlaylistsRead)
+async def delete_user_playlist(data: UsersPlaylistsDelete):
+    """ Эндпоинт для удаления плейлиста пользователя """
+    
+    up_filter = {
+        'playlist_id': data.playlist_id,
+        'user_id': data.user_id
+    }
+
+    user_playlist = await UsersPlaylistsDAO.find_one_or_none(**up_filter)
+    if not user_playlist:
+        raise NoUserPlaylistException
+    
+    user_playlist = await UsersPlaylistsDAO.delete(user_playlist.id)
+    playlist = await PlaylistsDAO.find_one_or_none_by_id(data.playlist_id)
+    is_author = playlist.author_id == data.user_id
+
+    if is_author:
+        playlist = await PlaylistsDAO.delete(data.playlist_id)
+
+    return user_playlist
