@@ -7,10 +7,10 @@ class Tracks(Base):
     __tablename__ = 'tracks'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    yt_id: Mapped[str] = mapped_column(String, unique=True)
-    track_url: Mapped[str] = mapped_column(String, unique=True)
-    img_url: Mapped[str] = mapped_column(String, unique=True)
-    title: Mapped[str] = mapped_column(String, unique=True)
+    yt_id: Mapped[str] = mapped_column(String)
+    track_url: Mapped[str] = mapped_column(String)
+    img_url: Mapped[str] = mapped_column(String)
+    title: Mapped[str] = mapped_column(String)
     artist: Mapped[str] = mapped_column(String)
     album: Mapped[str] = mapped_column(String)
     views_all: Mapped[int] = mapped_column(String, nullable=False)

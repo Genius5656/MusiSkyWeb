@@ -82,3 +82,8 @@ class YTTrackCreate(BaseModel):
     artist: Optional[str] = None
     duration: Optional[int] = None
 
+
+class YTPlaylistCreate(BaseModel):
+    playlist_id: str
+    title: str
+    cover_url: Optional[str] = None

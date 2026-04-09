@@ -29,19 +29,19 @@ async def get_playlists_by_user_id(current_user: User = Depends(get_current_user
 
 
 @router.post("/addUserPlaylist")
-async def add_user_playlist(data: UsersPlaylistsCreate):
+async def add_user_playlist(data: UsersPlaylistsCreate, current_user: User = Depends(get_current_user)):
     """Эндпоинт для добавления плейлиста пользователю"""
 
-    if not(await UsersDAO.find_one_or_none_by_id(data.user_id)):
+    if not(await UsersDAO.find_one_or_none_by_id(current_user.id)):
         raise NoUserException
     if not(await PlaylistsDAO.find_one_or_none_by_id(data.playlist_id)):
         raise NoPlaylistException
     
-    user_playlist_all = await UsersPlaylistsDAO.find_all(user_id=data.user_id)
+    user_playlist_all = await UsersPlaylistsDAO.find_all(user_id=current_user.id)
     position = len(user_playlist_all) + 1
     
     user_playlist_data = {
-        'user_id': data.user_id,
+        'user_id': current_user.id,
         'playlist_id': data.playlist_id,
         'position': position
     }
@@ -60,21 +60,21 @@ async def add_user_playlist(data: UsersPlaylistsCreate):
 
 
 @router.put("/updatePlaylistsPosition")
-async def update_playlists_position(data: UsersPlaylistsUpdate):
+async def update_playlists_position(data: UsersPlaylistsUpdate, current_user: User = Depends(get_current_user)):
     """Эндпоинт для изменения позиции плейлиста у пользователя"""
 
-    if not(await UsersDAO.find_one_or_none_by_id(data.user_id)):
+    if not(await UsersDAO.find_one_or_none_by_id(current_user.id)):
         raise NoUserException
     if not(await PlaylistsDAO.find_one_or_none_by_id(data.playlist_id)):
         raise NoPlaylistException
 
     up_filter = {
-        'user_id': data.user_id,
+        'user_id': current_user.id,
         'playlist_id': data.playlist_id
     }
 
     db_playlist_user = await UsersPlaylistsDAO.find_one_or_none(**up_filter)
-    all_playlist_users = await UsersPlaylistsDAO.find_all(user_id=data.user_id)
+    all_playlist_users = await UsersPlaylistsDAO.find_all(user_id=current_user.id)
 
     old_pos = db_playlist_user.position
     new_pos = data.position
@@ -106,12 +106,12 @@ async def update_playlists_position(data: UsersPlaylistsUpdate):
 
 
 @router.delete("/deleteUserPlaylist", response_model=UsersPlaylistsRead)
-async def delete_user_playlist(data: UsersPlaylistsDelete):
+async def delete_user_playlist(playlist_id: int, current_user: User = Depends(get_current_user)):
     """ Эндпоинт для удаления плейлиста пользователя """
     
     up_filter = {
-        'playlist_id': data.playlist_id,
-        'user_id': data.user_id
+        'playlist_id': playlist_id,
+        'user_id': current_user.id
     }
 
     user_playlist = await UsersPlaylistsDAO.find_one_or_none(**up_filter)
@@ -119,10 +119,10 @@ async def delete_user_playlist(data: UsersPlaylistsDelete):
         raise NoUserPlaylistException
     
     user_playlist = await UsersPlaylistsDAO.delete(user_playlist.id)
-    playlist = await PlaylistsDAO.find_one_or_none_by_id(data.playlist_id)
-    is_author = playlist.author_id == data.user_id
+    playlist = await PlaylistsDAO.find_one_or_none_by_id(playlist_id)
+    is_author = playlist.author_id == current_user.id
 
     if is_author:
-        playlist = await PlaylistsDAO.delete(data.playlist_id)
+        playlist = await PlaylistsDAO.delete(playlist_id)
 
     return user_playlist

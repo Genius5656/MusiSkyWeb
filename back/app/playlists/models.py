@@ -7,13 +7,13 @@ class Playlists(Base):
     __tablename__ = 'playlists'
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    yt_id: Mapped[str] = mapped_column(String, unique=True)
+    yt_id: Mapped[str] = mapped_column(String)
     author_id: Mapped[int] = mapped_column(
         Integer, 
         ForeignKey("users.id", ondelete="CASCADE"),  # Добавлен ondelete
         nullable=False
     )
     title: Mapped[str] = mapped_column(String, nullable=False)
-    img_url: Mapped[str] = mapped_column(String, unique=True)
+    img_url: Mapped[str] = mapped_column(String)
     privacy: Mapped[bool] = mapped_column(Boolean, nullable=False)
 

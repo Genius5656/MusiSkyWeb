@@ -1,9 +1,15 @@
-from fastapi import FastAPI, Query, HTTPException, APIRouter
+from fastapi import FastAPI, Query, HTTPException, APIRouter, Depends
 from app.tracks_playlists.dao import TracksPlaylistsDAO
+from fastapi.responses import JSONResponse
 from app.tracks.dao import TracksDAO
-from app.youtube.schemas import SearchResponse, ChartsResponse, TrackInfo, PlaylistInfo, AlbumInfo, ArtistInfo, YTTrackCreate
+from app.playlists.dao import PlaylistsDAO
+from app.users_playlists.dao import UsersPlaylistsDAO
+from app.youtube.schemas import SearchResponse, ChartsResponse, TrackInfo, PlaylistInfo, AlbumInfo, \
+    ArtistInfo, YTTrackCreate, YTPlaylistCreate
 from app.youtube.yt_interaction import get_audio_url, search_all_categories, get_track_details, \
     get_playlist_details, get_album_details, get_artist_details, get_charts_data, get_charts_by_category
+from app.users.dependensies import get_current_user
+from app.users.models import User
 from ytmusicapi import YTMusic
 import logging
 
@@ -206,3 +212,66 @@ async def get_charts_by_type(
 @router.post("/addYTtrack")
 async def add_track_playlist(data: YTTrackCreate):
     """Эндпоинт для добавления трека в плейлист"""
+
+    track_data = {
+        'yt_id': data.track_id,
+        'img_url': data.cover_url,
+        'title': data.title,
+        'artist': data.artist,
+        'album': data.album
+    }
+
+    track = await TracksDAO.add(**track_data)
+    track_playlist_all = await TracksPlaylistsDAO.find_all(playlist_id=data.playlist_id)
+    position = len(track_playlist_all) + 1
+
+    tp_data = {
+        'track_id': track.id,
+        'playlist_id': data.playlist_id,
+        'position': position
+    }
+
+    track_playlist = await TracksPlaylistsDAO.add(**tp_data)
+    return JSONResponse(
+        status_code=200,
+        content={
+            'message': 'TrackPlaylist added successfully',
+            'playlist_id': track_playlist.playlist_id,
+            'track_id': track_playlist.track_id,
+            'position': position
+        }
+    )
+
+
+@router.post("/addYTplaylist")
+async def add_user_playlist(data: YTPlaylistCreate, current_user: User = Depends(get_current_user)):
+    """Эндпоинт для добавления плейлиста пользователю"""
+
+    playlist_data = {
+        'yt_id': data.playlist_id,
+        'author_id': 0,
+        'title': data.title,
+        'img_url': data.cover_url,
+        'privacy': False
+    }
+
+    playlist = await PlaylistsDAO.add(**playlist_data)
+    user_playlist_all = await UsersPlaylistsDAO.find_all(user_id=current_user.id)
+    position = len(user_playlist_all) + 1
+
+    up_data = {
+        'playlist_id': playlist.id,
+        'user_id': current_user.id,
+        'position': position
+    }
+
+    user_playlist = await UsersPlaylistsDAO.add(**up_data)
+    return JSONResponse(
+        status_code=200,
+        content={
+            'message': 'UserPlaylist added successfully',
+            'playlist_id': user_playlist.playlist_id,
+            'user_id': user_playlist.user_id,
+            'position': position
+        }
+    )

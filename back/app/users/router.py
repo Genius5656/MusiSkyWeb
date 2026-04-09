@@ -9,6 +9,7 @@ from app.users.models import User
 from app.users.dao import UsersDAO
 from app.users.banlist import BanListDAO
 from app.playlists.dao import PlaylistsDAO
+from app.users_playlists.dao import UsersPlaylistsDAO
 from app.users.schemas import SUserRegister, SUserAuth
 
 router = APIRouter(prefix='/auth', tags=['Auth'])
@@ -53,25 +54,45 @@ async def logout_user(response: Response):
 @router.delete("/deleteAccount/")
 async def delete_account(response: Response, current_user: User = Depends(get_current_user)):
     response.delete_cookie(key="users_access_token")
-    user = await UsersDAO.delete(current_user.id)
+    user = await UsersDAO.find_one_or_none_by_id(current_user.id)
     if not user:
         raise NoUserException
+    
     playlists = await PlaylistsDAO.find_all(author_id=current_user.id)
     if playlists:
         for playlist in playlists:
             await PlaylistsDAO.delete(playlist.id)
+
+    users_playlists = await UsersPlaylistsDAO.find_all(user_id=current_user.id, yt_id="NOT_NULL")
+    user = await UsersDAO.delete(id=current_user.id)
+    if users_playlists:
+        for user_playlist in users_playlists:
+            isMore = await UsersPlaylistsDAO.find_all(playlist_id=user_playlist.playlist_id)
+            if not isMore:
+                playlist = await PlaylistsDAO.delete(user_playlist.playlist_id)
+        
     return {'message': 'Аккаунт удален'}
 
 
 @router.delete("/deleteUser/{user_id}")
 async def delete_account(user_id: int):
-    user = await UsersDAO.delete(user_id)
+    user = await UsersDAO.find_one_or_none_by_id(user_id)
     if not user:
         raise NoUserException
     playlists = await PlaylistsDAO.find_all(author_id=user_id)
+
     if playlists:
         for playlist in playlists:
             await PlaylistsDAO.delete(playlist.id)
+    
+    users_playlists = await UsersPlaylistsDAO.find_all(user_id=user_id, yt_id="NOT_NULL")
+    user = await UsersDAO.delete(id=user_id)
+    if users_playlists:
+        for user_playlist in users_playlists:
+            isMore = await UsersPlaylistsDAO.find_all(playlist_id=user_playlist.playlist_id)
+            if not isMore:
+                playlist = await PlaylistsDAO.delete(user_playlist.playlist_id)
+
     return {'message': 'Пользователь удален'}
 
 

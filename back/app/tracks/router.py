@@ -15,7 +15,7 @@ router = APIRouter(prefix='/tracks', tags=['Tracks'])
 @router.get("/tracks/{track_id}", response_model=TracksRead)
 async def get_track_by_id(track_id: int):
     """Получение информации о треке"""
-    track = await TracksDAO.find_one_or_none(id=track_id)
+    track = await TracksDAO.find_one_or_none_by_id(track_id)
     if not track:
         raise NoTrackException
     
@@ -52,9 +52,9 @@ async def add_local_track(track: TracksCreate):
         # Извлекаем метаданные
         metadata = extract_metadata_from_mp3(temp_file_path)
 
-        exist_track = await TracksDAO.find_one_or_none(metadata['title'])
+        """ exist_track = await TracksDAO.find_one_or_none(metadata['title'])
         if exist_track:
-            raise TrackAlreadyExistsException
+            raise TrackAlreadyExistsException """
         
         # Сохраняем изображение если есть
         img_url = None
@@ -119,7 +119,7 @@ async def add_local_track(track: TracksCreate):
 async def update_track(track_id: int, track: TracksUpdate):
     """Эндпоинт для изменения просмотров трека"""
 
-    db_track = await TracksDAO.find_one_or_none(id=track_id)
+    db_track = await TracksDAO.find_one_or_none_by_id(track_id)
     if not db_track:
         raise NoTrackException
 
