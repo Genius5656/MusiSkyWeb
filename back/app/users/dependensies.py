@@ -2,8 +2,9 @@ from fastapi import Request, HTTPException, status, Depends
 from jose import jwt, JWTError
 from datetime import datetime, timezone
 from app.config import get_auth_data
-from app.exceptions import TokenExpiredException, NoJwtException, NoUserIdException, TokenNoFoundException
-from app.users.dao import UsersDAO
+from app.exceptions import TokenExpiredException, NoJwtException, NoUserIdException, \
+    TokenNoFoundException, UserInBanException
+from app.users.dao import UsersDAO, BanListDAO
 
 
 def get_token(request: Request):
@@ -32,4 +33,8 @@ async def get_current_user(token: str = Depends(get_token)):
     user = await UsersDAO.find_one_or_none_by_id(int(user_id))
     if not user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail='User not found')
+    
+    in_ban = await BanListDAO.find_one_or_none(email=user.email)
+    if in_ban:
+        raise UserInBanException
     return user

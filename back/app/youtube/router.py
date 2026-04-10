@@ -8,23 +8,22 @@ from app.youtube.schemas import SearchResponse, ChartsResponse, TrackInfo, Playl
     ArtistInfo, YTTrackCreate, YTPlaylistCreate
 from app.youtube.yt_interaction import get_audio_url, search_all_categories, get_track_details, \
     get_playlist_details, get_album_details, get_artist_details, get_charts_data, get_charts_by_category
+from app.youtube.initialisation import ytmusic, logger
 from app.users.dependensies import get_current_user
 from app.users.models import User
-from ytmusicapi import YTMusic
-import logging
 
 
 # Настройка логирования
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+""" logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__) """
 
 router = APIRouter(prefix='/youtube', tags=['Youtube'])
 
-try:
+""" try:
     ytmusic = YTMusic()
 except Exception as e:
     logger.error(f"Ошибка инициализации YTMusic: {e}")
-    ytmusic = None
+    ytmusic = None """
 
 
 # --- Эндпоинт FastAPI ---

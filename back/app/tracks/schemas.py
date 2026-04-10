@@ -16,9 +16,6 @@ class TracksRead(BaseModel):
     title: str
     artist: str
     album: str
-    views_all: int
-    views_date: int
-    privacy: int
 
     class Config:
         from_attributes = True

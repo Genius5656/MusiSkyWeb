@@ -1,25 +1,28 @@
 from fastapi import APIRouter, Response, Depends
 from fastapi.requests import Request
 from fastapi.responses import HTMLResponse
-from app.exceptions import UserAlreadyExistsException, IncorrectEmailOrPasswordException, PasswordMismatchException
-from app.exceptions import NoUserException, UserAlreadyBannedException, NoBannedUserException, UserInBanException
+from pydantic import EmailStr
+from app.exceptions import UserAlreadyExistsException, IncorrectEmailOrPasswordException, PasswordMismatchException, \
+    NoUserException, UserAlreadyBannedException, NoBannedUserException, UserInBanException
 from app.users.auth import get_password_hash, authenticate_user, create_access_token
 from app.users.dependensies import get_current_user
 from app.users.models import User
-from app.users.dao import UsersDAO
-from app.users.banlist import BanListDAO
+from app.users.dao import UsersDAO, BanListDAO
 from app.playlists.dao import PlaylistsDAO
-from app.users_playlists.dao import UsersPlaylistsDAO
 from app.users.schemas import SUserRegister, SUserAuth
 
 router = APIRouter(prefix='/auth', tags=['Auth'])
 
 
 @router.post("/register/")
-async def register_user(user_data: SUserRegister) -> dict:
+async def register_user(response: Response, user_data: SUserRegister) -> dict:
     user = await UsersDAO.find_one_or_none(email=user_data.email)
     if user:
         raise UserAlreadyExistsException
+    
+    in_ban = await BanListDAO.find_one_or_none(email=user_data.email)
+    if in_ban:
+        raise UserInBanException
 
     if user_data.password != user_data.password_check:
         raise PasswordMismatchException("Пароли не совпадают")
@@ -30,7 +33,15 @@ async def register_user(user_data: SUserRegister) -> dict:
         hashed_password=hashed_password
     )
 
-    return {'message': 'Вы успешно зарегистрированы!'}
+    check = await authenticate_user(email=user_data.email, password=user_data.password)
+    if check == "banned":
+        raise UserInBanException
+    elif check is None:
+        raise IncorrectEmailOrPasswordException
+    access_token = create_access_token({"sub": str(check.id)})
+    response.set_cookie(key="users_access_token", value=access_token, httponly=True)
+
+    return {'ok': True, 'access_token': access_token, 'refresh_token': None, 'message': 'Вы успешно зарегистрированы!'}
 
 
 @router.post("/login/")
@@ -62,20 +73,14 @@ async def delete_account(response: Response, current_user: User = Depends(get_cu
     if playlists:
         for playlist in playlists:
             await PlaylistsDAO.delete(playlist.id)
-
-    users_playlists = await UsersPlaylistsDAO.find_all(user_id=current_user.id, yt_id="NOT_NULL")
-    user = await UsersDAO.delete(id=current_user.id)
-    if users_playlists:
-        for user_playlist in users_playlists:
-            isMore = await UsersPlaylistsDAO.find_all(playlist_id=user_playlist.playlist_id)
-            if not isMore:
-                playlist = await PlaylistsDAO.delete(user_playlist.playlist_id)
+    
+    user = await UsersDAO.delete(current_user.id)
         
     return {'message': 'Аккаунт удален'}
 
 
 @router.delete("/deleteUser/{user_id}")
-async def delete_account(user_id: int):
+async def delete_user(user_id: int):
     user = await UsersDAO.find_one_or_none_by_id(user_id)
     if not user:
         raise NoUserException
@@ -84,34 +89,25 @@ async def delete_account(user_id: int):
     if playlists:
         for playlist in playlists:
             await PlaylistsDAO.delete(playlist.id)
-    
-    users_playlists = await UsersPlaylistsDAO.find_all(user_id=user_id, yt_id="NOT_NULL")
-    user = await UsersDAO.delete(id=user_id)
-    if users_playlists:
-        for user_playlist in users_playlists:
-            isMore = await UsersPlaylistsDAO.find_all(playlist_id=user_playlist.playlist_id)
-            if not isMore:
-                playlist = await PlaylistsDAO.delete(user_playlist.playlist_id)
+
+    user = await UsersDAO.delete(user_id)
 
     return {'message': 'Пользователь удален'}
 
 
-@router.post("/banUser/{user_id}")
-async def ban_user(response: Response, user_id: int):
-    banned_user = await BanListDAO.find_one_or_none(user_id=user_id)
+@router.post("/banUser/{email}")
+async def ban_user(response: Response, email: EmailStr):
+    banned_user = await BanListDAO.find_one_or_none(email=email)
     if banned_user:
         raise UserAlreadyBannedException
-    try:
-        response.delete_cookie(key="users_access_token")
-    except Exception as e:
-        print(f"Не удалось удалить токен пользователя: {str(e)}")
-    banned_user = await BanListDAO.add(user_id=user_id)
+
+    banned_user = await BanListDAO.add(email=email)
     return {'message': 'Пользователь забанен'}
 
 
-@router.delete("/unbanUser/{user_id}")
-async def unban_user(user_id: int):
-    banned_user = await BanListDAO.find_one_or_none(user_id=user_id)
+@router.delete("/unbanUser/{email}")
+async def unban_user(email: EmailStr):
+    banned_user = await BanListDAO.find_one_or_none(email=email)
     if not banned_user:
         raise NoBannedUserException
     unbanned_user = await BanListDAO.delete(banned_user.id)

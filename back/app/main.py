@@ -10,6 +10,7 @@ from app.playlists.router import router as playlists_router
 from app.tracks_playlists.router import router as tracks_playlists_router
 from app.users_playlists.router import router as users_playlists_router
 from app.youtube.router import router as youtube_router
+from app.users_tracks.router import router as users_tracks_router
 from app.media_interaction import BASE_DIR, MEDIA_TRACKS_MP3, MEDIA_TRACKS_IMAGES, MEDIA_COVER_IMAGES
 import uvicorn
 
@@ -33,6 +34,7 @@ app.include_router(tracks_router)
 app.include_router(playlists_router)
 app.include_router(tracks_playlists_router)
 app.include_router(users_playlists_router)
+app.include_router(users_tracks_router)
 app.include_router(youtube_router)
 
 
@@ -57,4 +59,4 @@ async def token_no_found_exception_handler(request: Request, exc: HTTPException)
 # --- Точка входа для тестирования ---
 if __name__ == "__main__":
     # Запустите сервер командой: uvicorn main:app --reload
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8001)

@@ -160,13 +160,7 @@ async def delete_playlist(playlist_id: int):
     cover_del = delete_file_by_path(cover_path)
     if not cover_del:
         print("Обложка отсутствует")
-
-    tracks_playlists = await TracksPlaylistsDAO.find_all(playlist_id=playlist_id, yt_id="NOT_NULL")
-    playlist = await PlaylistsDAO.delete(id=playlist_id)
-    if tracks_playlists:
-        for track_playlist in tracks_playlists:
-            isMore = await TracksPlaylistsDAO.find_all(track_id=track_playlist.track_id)
-            if not isMore:
-                track = await TracksDAO.delete(track_playlist.track_id)
+    
+    playlist = await PlaylistsDAO.delete(playlist_id)
         
     return playlist

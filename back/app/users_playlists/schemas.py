@@ -2,10 +2,9 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 
-class UsersPlaylistsCreate(BaseModel):
-    #user_id: int
+""" class UsersPlaylistsCreate(BaseModel):
     playlist_id: int
-    position: int
+    title: str """
 
 
 class UsersPlaylistsRead(BaseModel):
@@ -20,7 +19,6 @@ class UsersPlaylistsRead(BaseModel):
 
 class UsersPlaylistsUpdate(BaseModel):
     playlist_id: int
-    #user_id: int
     position: int
 
 

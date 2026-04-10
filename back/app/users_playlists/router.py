@@ -1,14 +1,12 @@
 from fastapi import FastAPI, HTTPException, APIRouter, Depends
-from typing import List
 from fastapi.responses import JSONResponse
-from app.media_interaction import save_image, convert_image_to_bytes, delete_file_by_path
 from app.exceptions import NoPlaylistException, NoUserException, NoUserPlaylistException
 from app.users_playlists.dao import UsersPlaylistsDAO
 from app.users.dependensies import get_current_user
 from app.users.models import User
 from app.users.dao import UsersDAO
 from app.playlists.dao import PlaylistsDAO
-from app.users_playlists.schemas import UsersPlaylistsCreate, UsersPlaylistsRead, UsersPlaylistsUpdate, UsersPlaylistsDelete
+from app.users_playlists.schemas import UsersPlaylistsRead, UsersPlaylistsUpdate
 
 router = APIRouter(prefix='/users_playlists', tags=['UsersPlaylists'])
 
@@ -29,20 +27,25 @@ async def get_playlists_by_user_id(current_user: User = Depends(get_current_user
 
 
 @router.post("/addUserPlaylist")
-async def add_user_playlist(data: UsersPlaylistsCreate, current_user: User = Depends(get_current_user)):
+async def add_user_playlist(title: str, current_user: User = Depends(get_current_user)):
     """Эндпоинт для добавления плейлиста пользователю"""
+    
+    playlist_data = {
+        'yt_id': "",
+        'author_id': current_user.id,
+        'title': title,
+        'img_url': "",
+        'privacy': True
+    }
 
-    if not(await UsersDAO.find_one_or_none_by_id(current_user.id)):
-        raise NoUserException
-    if not(await PlaylistsDAO.find_one_or_none_by_id(data.playlist_id)):
-        raise NoPlaylistException
+    playlist = await PlaylistsDAO.add(**playlist_data)
     
     user_playlist_all = await UsersPlaylistsDAO.find_all(user_id=current_user.id)
     position = len(user_playlist_all) + 1
     
     user_playlist_data = {
         'user_id': current_user.id,
-        'playlist_id': data.playlist_id,
+        'playlist_id': playlist.id,
         'position': position
     }
 
@@ -52,8 +55,8 @@ async def add_user_playlist(data: UsersPlaylistsCreate, current_user: User = Dep
         status_code=200,
         content={
             'message': 'UserPlaylist added successfully',
-            'playlist_id': user_playlist.id,
-            'user_id': user_playlist.id,
+            'playlist_id': playlist.id,
+            'user_id': user_playlist.user_id,
             'position': position
         }
     )

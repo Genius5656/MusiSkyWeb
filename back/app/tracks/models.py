@@ -13,7 +13,7 @@ class Tracks(Base):
     title: Mapped[str] = mapped_column(String)
     artist: Mapped[str] = mapped_column(String)
     album: Mapped[str] = mapped_column(String)
-    views_all: Mapped[int] = mapped_column(String, nullable=False)
-    views_date: Mapped[int] = mapped_column(String, nullable=False)
+    """ views_all: Mapped[int] = mapped_column(String, nullable=False)
+    views_date: Mapped[int] = mapped_column(String, nullable=False) """
     """ privacy: Mapped[bool] = mapped_column(Boolean, nullable=False) """
 

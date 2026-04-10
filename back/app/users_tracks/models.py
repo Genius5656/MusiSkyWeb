@@ -17,4 +17,5 @@ class UsersTracks(Base):
         ForeignKey("tracks.id", ondelete="CASCADE"), 
         nullable=False
     )
+    views: Mapped[int] = mapped_column(Integer, nullable=False)
 

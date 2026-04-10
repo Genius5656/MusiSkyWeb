@@ -31,16 +31,16 @@ async def get_tracks_by_playlist_id(playlist_id: int):
 async def add_track_playlist(data: TracksPlaylistsCreate):
     """Эндпоинт для добавления трека в плейлист"""
 
-    if not(await TracksDAO.find_one_or_none_by_id(data.track_id)):
-        raise NoTrackException
     if not(await PlaylistsDAO.find_one_or_none_by_id(data.playlist_id)):
         raise NoPlaylistException
+    
+    track = 1
     
     track_playlist_all = await TracksPlaylistsDAO.find_all(playlist_id=data.playlist_id)
     position = len(track_playlist_all) + 1
     
     track_playlist_data = {
-        'track_id': data.track_id,
+        'track_id': track.id,
         'playlist_id': data.playlist_id,
         'position': position
     }
@@ -52,7 +52,7 @@ async def add_track_playlist(data: TracksPlaylistsCreate):
         content={
             'message': 'TrackPlaylist added successfully',
             'playlist_id': track_playlist.playlist_id,
-            'track_id': track_playlist.track_id,
+            'track_id': track.id,
             'position': position
         }
     )
@@ -105,6 +105,7 @@ async def update_tracks_position(data: TracksPlaylistsUpdate):
     )
 
 
+# BAG
 @router.delete("/deleteTrackPlaylist", response_model=TracksPlaylistsRead)
 async def delete_track_playlist(data: TracksPlaylistsDelete):
     """Эндпоинт для удаления трека из плейлиста"""
@@ -117,11 +118,5 @@ async def delete_track_playlist(data: TracksPlaylistsDelete):
     track_playlist = await TracksPlaylistsDAO.find_one_or_none(**tp_filter)
     if not track_playlist:
         raise NoTrackPlaylistException
-    
-    track_playlist = await TracksPlaylistsDAO.delete(track_playlist.id)
-    is_more = await TracksPlaylistsDAO.find_all(track_id=data.track_id)
-
-    if not is_more:
-        track = await TracksDAO.delete(data.track_id)
 
     return track_playlist

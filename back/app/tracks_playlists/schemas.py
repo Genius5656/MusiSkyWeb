@@ -1,12 +1,12 @@
 from typing import Optional
 from pydantic import BaseModel, Field
+from fastapi import UploadFile, File
 
 
 class TracksPlaylistsCreate(BaseModel):
-    track_id: int
+    file: UploadFile = File(...)
     playlist_id: int
-    position: int
-
+    
 
 class TracksPlaylistsRead(BaseModel):
     id: int

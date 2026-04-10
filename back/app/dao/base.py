@@ -40,25 +40,25 @@ class BaseDAO:
             result = await session.execute(query)
             return result.scalar_one_or_none()
 
-    """ @classmethod
+    @classmethod
     async def find_all(cls, **filter_by):
         
-        Асинхронно находит и возвращает все экземпляры модели, удовлетворяющие указанным критериям.
+        """ Асинхронно находит и возвращает все экземпляры модели, удовлетворяющие указанным критериям.
 
         Аргументы:
             **filter_by: Критерии фильтрации в виде именованных параметров.
 
         Возвращает:
-            Список экземпляров модели.
+            Список экземпляров модели. """
        
         async with async_session_maker() as session:
             query = select(cls.model).filter_by(**filter_by)
             result = await session.execute(query)
-            return result.scalars().all() """
+            return result.scalars().all()
 
-    @classmethod
+    """ @classmethod
     async def find_all(cls, **filter_by):
-        """
+        
         Асинхронно находит и возвращает все экземпляры модели, удовлетворяющие указанным критериям.
         
         Аргументы:
@@ -66,7 +66,7 @@ class BaseDAO:
         
         Возвращает:
             Список экземпляров модели.
-        """
+       
         async with async_session_maker() as session:
             query = select(cls.model)
             
@@ -80,7 +80,7 @@ class BaseDAO:
                     query = query.filter(getattr(cls.model, key) == value)
             
             result = await session.execute(query)
-            return result.scalars().all()
+            return result.scalars().all() """
 
     @classmethod
     async def add(cls, **values):

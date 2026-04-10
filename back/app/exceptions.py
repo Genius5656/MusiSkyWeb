@@ -52,3 +52,5 @@ NoPlaylistException = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detai
 NoTrackPlaylistException = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="TrackPlaylist not found")
 
 NoUserPlaylistException = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="UserPlaylist not found")
+
+NoUserTrackException = HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="UserTrack not found")

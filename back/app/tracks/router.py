@@ -2,7 +2,7 @@ import uuid
 import shutil
 from fastapi import FastAPI, HTTPException, APIRouter
 from fastapi.responses import JSONResponse
-from app.media_interaction import BASE_DIR, MEDIA_TRACKS_MP3, MEDIA_TRACKS_IMAGES, MEDIA_COVER_IMAGES
+from app.media_interaction import BASE_DIR, MEDIA_TRACKS_MP3
 from app.media_interaction import extract_metadata_from_mp3, remove_metadata_from_mp3, save_image, delete_file_by_path
 from app.exceptions import TrackAlreadyExistsException, NoTrackException, FilesNotAllowedException
 from app.tracks.dao import TracksDAO
@@ -19,17 +19,7 @@ async def get_track_by_id(track_id: int):
     if not track:
         raise NoTrackException
     
-    return {
-        'id': track.id,
-        'track_url': track.track_url,
-        'img_url': track.img_url,
-        'title': track.title,
-        'artist': track.artist,
-        'album': track.album,
-        'views_all': track.views_all,
-        'views_date': track.views_date,
-        'privacy': track.privacy
-    }
+    return track
 
 
 @router.post("/addLocalTrack")
@@ -51,10 +41,6 @@ async def add_local_track(track: TracksCreate):
         
         # Извлекаем метаданные
         metadata = extract_metadata_from_mp3(temp_file_path)
-
-        """ exist_track = await TracksDAO.find_one_or_none(metadata['title'])
-        if exist_track:
-            raise TrackAlreadyExistsException """
         
         # Сохраняем изображение если есть
         img_url = None
@@ -84,9 +70,6 @@ async def add_local_track(track: TracksCreate):
             'title': metadata['title'],
             'artist': metadata['artist'],
             'album': metadata['album'],
-            'views_all': 0,
-            'views_date': 0,
-            #'privacy': track.privacy
         }
         
         new_track = await TracksDAO.add(**track_data)
@@ -115,9 +98,9 @@ async def add_local_track(track: TracksCreate):
             temp_file_path.unlink()
 
 
-@router.put("/updateTrackViews/{track_id}", response_model=TracksRead)
+""" @router.put("/updateTrackViews/{track_id}", response_model=TracksRead)
 async def update_track(track_id: int, track: TracksUpdate):
-    """Эндпоинт для изменения просмотров трека"""
+    Эндпоинт для изменения просмотров трека
 
     db_track = await TracksDAO.find_one_or_none_by_id(track_id)
     if not db_track:
@@ -125,10 +108,10 @@ async def update_track(track_id: int, track: TracksUpdate):
 
     track = TracksUpdate(views_all=track.views_all, views_date=track.views_date)
     trackUpdate = await TracksDAO.update(db_track, track)
-    return trackUpdate
+    return trackUpdate """
 
 
-@router.delete("/deleteTrack/{track_id}", response_model=TracksRead)
+@router.delete("/deleteTrack/{track_id}")
 async def delete_track(track_id: int):
     """Эндпоинт для удаления трека"""
 
@@ -146,5 +129,5 @@ async def delete_track(track_id: int):
     if not cover_del:
         print("Обложка отсутствует")
 
-    track = await TracksDAO.delete(id=track_id)
+    track = await TracksDAO.delete(track_id)
     return track

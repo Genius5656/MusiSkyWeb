@@ -1,6 +1,6 @@
 from app.dao.base import BaseDAO
-from app.tracks.models import Tracks
+from app.users_tracks.models import UsersTracks
 
 
-class TracksDAO(BaseDAO):
-    model = Tracks
+class UsersTracksDAO(BaseDAO):
+    model = UsersTracks

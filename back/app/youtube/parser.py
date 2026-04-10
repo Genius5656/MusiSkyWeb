@@ -1,6 +1,6 @@
 from typing import List, Dict, Optional
 from app.youtube.schemas import TrackInfo, PlaylistInfo, AlbumInfo, ArtistInfo, ChartItem
-from app.youtube.router import logger
+from app.youtube.initialisation import logger
 
 
 def extract_thumbnails(thumbnails: List[Dict]) -> Optional[str]:

@@ -2,9 +2,9 @@ import asyncio
 from typing import Dict, Optional, Any
 from fastapi import FastAPI, Query, HTTPException
 from app.youtube.schemas import TrackInfo, PlaylistInfo, AlbumInfo, ArtistInfo, ChartItem
-from app.youtube.router import ytmusic, logger
 from app.youtube.parser import extract_thumbnails, parse_track_result, parse_playlist_result, \
     parse_album_result, parse_artist_result
+from app.youtube.initialisation import ytmusic, logger
 from datetime import datetime
 import yt_dlp
 

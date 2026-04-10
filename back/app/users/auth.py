@@ -3,8 +3,7 @@ from pydantic import EmailStr
 from jose import jwt
 from datetime import datetime, timedelta, timezone
 from app.config import get_auth_data
-from app.users.dao import UsersDAO
-from app.users.banlist import BanListDAO
+from app.users.dao import UsersDAO, BanListDAO
 
 
 def create_access_token(data: dict) -> str:
@@ -32,8 +31,8 @@ async def authenticate_user(email: EmailStr, password: str):
     if not user:
         return None
     
-    is_ban = await BanListDAO.find_one_or_none(user_id=user.id)
-    if is_ban:
+    in_ban = await BanListDAO.find_one_or_none(email=email)
+    if in_ban:
         return "banned"
     
     if verify_password(plain_password=password, hashed_password=user.hashed_password) is False:
