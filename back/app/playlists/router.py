@@ -23,14 +23,15 @@ async def get_playlist_by_id(playlist_id: int, current_user: User = Depends(get_
     
     can_edit = current_user.id == playlist.author_id
     
-    return {
-        'id': playlist.id,
-        'author_id': playlist.author_id,
-        'title': playlist.title,
-        'img_url': playlist.img_url,
-        'privacy': playlist.privacy,
-        'can_edit': can_edit
-    }
+    return PlaylistsRead(
+        id = playlist.id,
+        yt_id = playlist.yt_id,
+        author_id = playlist.author_id,
+        title = playlist.title,
+        img_url = playlist.img_url,
+        privacy = playlist.privacy,
+        can_edit = can_edit
+    )
 
 
 @router.post("/addPlaylist")
@@ -46,7 +47,9 @@ async def add_playlist(playlist: PlaylistsCreate, author: User = Depends(get_cur
             raise FilesNotAllowedException
     
     try:
-        if playlist.file:
+        img_url = None
+
+        if playlist.file != None:
             # Конвертируем изображение в байты
             image_bytes = convert_image_to_bytes(playlist.file)
             
@@ -60,10 +63,10 @@ async def add_playlist(playlist: PlaylistsCreate, author: User = Depends(get_cur
         
         # Сохраняем данные в БД
         playlist_data = {
-            'yt_id': "",
+            'yt_id': None,
             'author_id': author.id,
             'title': playlist.title,
-            'image_url': img_url or "",
+            'img_url': img_url,
             'privacy': playlist.privacy
         }
         
@@ -74,7 +77,7 @@ async def add_playlist(playlist: PlaylistsCreate, author: User = Depends(get_cur
             content={
                 'message': 'Playlist added successfully',
                 'playlist_id': new_playlist.id,
-                'image_url': img_url,
+                'img_url': img_url,
                 'author_id': author.id,
                 'metadata': {
                     'title': playlist.title
@@ -101,6 +104,8 @@ async def update_playlist(playlist_id: int, playlist: PlaylistsUpdate):
             cover_path = urllib.parse.unquote(playlist.img_url)
             delete_file_by_path(cover_path)
 
+        img_url = None
+
         if playlist.file:
             allowed_extensions = {'.jpg', '.jpeg', '.png', '.tiff', '.svg'}
             file_extension = Path(playlist.file.filename).suffix.lower()
@@ -121,18 +126,18 @@ async def update_playlist(playlist_id: int, playlist: PlaylistsUpdate):
 
         playlist_data = {
             'title': playlist.title,
-            'image_url': img_url or "",
+            'img_url': img_url,
             'privacy': playlist.privacy
         }
 
-        playlistUpdate = await PlaylistsDAO.update(db_playlist, **playlist_data)
+        playlistUpdate = await PlaylistsDAO.update(db_playlist, playlist_data)
 
         return JSONResponse(
             status_code=200,
             content={
                 'message': 'Playlist updated successfully',
                 'playlist_id': playlistUpdate.id,
-                'image_url': img_url,
+                'img_url': img_url,
                 'author_id': playlistUpdate.author_id,
                 'metadata': {
                     'title': playlist.title,
@@ -147,7 +152,7 @@ async def update_playlist(playlist_id: int, playlist: PlaylistsUpdate):
         raise HTTPException(status_code=500, detail=f"Error processing update: {str(e)}")
 
 
-@router.delete("/deletePlaylist/{playlist_id}", response_model=PlaylistsRead)
+@router.delete("/deletePlaylist/{playlist_id}")
 async def delete_playlist(playlist_id: int):
     """Эндпоинт для удаления плейлиста"""
 
@@ -156,7 +161,11 @@ async def delete_playlist(playlist_id: int):
     if not playlist:
         raise NoPlaylistException
     
-    cover_path = urllib.parse.unquote(playlist.img_url)
+    cover_path = None
+    try:
+        cover_path = urllib.parse.unquote(playlist.img_url)
+    except:
+        print("Ошибка при обработке пути обложки")
     cover_del = delete_file_by_path(cover_path)
     if not cover_del:
         print("Обложка отсутствует")

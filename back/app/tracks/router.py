@@ -119,12 +119,20 @@ async def delete_track(track_id: int):
     if not track:
         raise NoTrackException
     
-    track_path = urllib.parse.unquote(track.track_url)
+    track_path = None
+    try:
+        track_path = urllib.parse.unquote(track.track_url)
+    except:
+        print("Ошибка при обработке пути трека")
     track_del = delete_file_by_path(track_path)
     if not track_del:
         print("Трек mp3 отсутствует")
 
-    cover_path = urllib.parse.unquote(track.img_url)
+    cover_path = None
+    try:
+        cover_path = urllib.parse.unquote(track.img_url)
+    except:
+        print("Ошибка при обработке пути обложки")
     cover_del = delete_file_by_path(cover_path)
     if not cover_del:
         print("Обложка отсутствует")

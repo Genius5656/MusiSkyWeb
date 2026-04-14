@@ -248,7 +248,7 @@ async def add_user_playlist(data: YTPlaylistCreate, current_user: User = Depends
 
     playlist_data = {
         'yt_id': data.playlist_id,
-        'author_id': 0,
+        'author_id': 2,
         'title': data.title,
         'img_url': data.cover_url,
         'privacy': False

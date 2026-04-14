@@ -72,7 +72,8 @@ async def delete_account(response: Response, current_user: User = Depends(get_cu
     playlists = await PlaylistsDAO.find_all(author_id=current_user.id)
     if playlists:
         for playlist in playlists:
-            await PlaylistsDAO.delete(playlist.id)
+            if playlist.author_id == current_user.id:
+                await PlaylistsDAO.delete(playlist.id)
     
     user = await UsersDAO.delete(current_user.id)
         
@@ -80,15 +81,16 @@ async def delete_account(response: Response, current_user: User = Depends(get_cu
 
 
 @router.delete("/deleteUser/{user_id}")
-async def delete_user(user_id: int):
+async def delete_user(user_id: int, current_user: User = Depends(get_current_user)):
     user = await UsersDAO.find_one_or_none_by_id(user_id)
     if not user:
         raise NoUserException
+    
     playlists = await PlaylistsDAO.find_all(author_id=user_id)
-
     if playlists:
         for playlist in playlists:
-            await PlaylistsDAO.delete(playlist.id)
+            if playlist.author_id == current_user.id:
+                await PlaylistsDAO.delete(playlist.id)
 
     user = await UsersDAO.delete(user_id)
 

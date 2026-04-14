@@ -1,8 +1,8 @@
 """Initial revision
 
-Revision ID: b12583781d20
+Revision ID: 50faaddce80e
 Revises: 
-Create Date: 2026-04-10 14:45:04.336068
+Create Date: 2026-04-14 11:02:49.261298
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'b12583781d20'
+revision: str = '50faaddce80e'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -30,12 +30,12 @@ def upgrade() -> None:
     )
     op.create_table('tracks',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-    sa.Column('yt_id', sa.String(), nullable=False),
-    sa.Column('track_url', sa.String(), nullable=False),
-    sa.Column('img_url', sa.String(), nullable=False),
-    sa.Column('title', sa.String(), nullable=False),
-    sa.Column('artist', sa.String(), nullable=False),
-    sa.Column('album', sa.String(), nullable=False),
+    sa.Column('yt_id', sa.String(), nullable=True),
+    sa.Column('track_url', sa.String(), nullable=True),
+    sa.Column('img_url', sa.String(), nullable=True),
+    sa.Column('title', sa.String(), nullable=True),
+    sa.Column('artist', sa.String(), nullable=True),
+    sa.Column('album', sa.String(), nullable=True),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.PrimaryKeyConstraint('id')
@@ -52,10 +52,10 @@ def upgrade() -> None:
     )
     op.create_table('playlists',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-    sa.Column('yt_id', sa.String(), nullable=False),
+    sa.Column('yt_id', sa.String(), nullable=True),
     sa.Column('author_id', sa.Integer(), nullable=False),
     sa.Column('title', sa.String(), nullable=False),
-    sa.Column('img_url', sa.String(), nullable=False),
+    sa.Column('img_url', sa.String(), nullable=True),
     sa.Column('privacy', sa.Boolean(), nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.DateTime(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),

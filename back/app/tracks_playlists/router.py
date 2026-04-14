@@ -12,12 +12,12 @@ from app.tracks.schemas import TracksRead
 router = APIRouter(prefix='/tracks_playlists', tags=['TracksPlaylists'])
 
 
-@router.get("/trackPlaylist/tracks/{playlist_id}", response_model=List[TracksRead])
+@router.get("/trackPlaylist/tracks/{playlist_id}")
 async def get_tracks_by_playlist_id(playlist_id: int):
     """Эндпоинт для получения всех треков плейлиста"""
 
     track_playlist_all = await TracksPlaylistsDAO.find_all(playlist_id=playlist_id)
-    sorted_tp_list = sorted(track_playlist_all, key=lambda trackPlaylist: trackPlaylist['position'])
+    sorted_tp_list = sorted(track_playlist_all, key=lambda trackPlaylist: trackPlaylist.position)
 
     tracks_list = []
     for track_playlist in sorted_tp_list:
@@ -82,11 +82,11 @@ async def update_tracks_position(data: TracksPlaylistsUpdate):
         if new_pos < old_pos:
             for playlist_track in all_playlist_tracks:
                 if (playlist_track.position >= new_pos) and (playlist_track.position < old_pos):
-                    track_playlist_update = await TracksPlaylistsDAO.update(playlist_track, {'postion': (playlist_track.position + 1)})
+                    await TracksPlaylistsDAO.update(playlist_track, {'position': playlist_track.position + 1})
         else:
             for playlist_track in all_playlist_tracks:
-                if (playlist_track.position > new_pos) and (playlist_track.position <= old_pos):
-                    track_playlist_update = await TracksPlaylistsDAO.update(playlist_track, {'postion': (playlist_track.position - 1)})
+                if (playlist_track.position > old_pos) and (playlist_track.position <= new_pos):
+                    await TracksPlaylistsDAO.update(playlist_track, {'position': playlist_track.position - 1})
                     
     except Exception as e:
         print(f"/updateTrackPosition Exception: {str(e)}")
@@ -105,7 +105,6 @@ async def update_tracks_position(data: TracksPlaylistsUpdate):
     )
 
 
-# BAG
 @router.delete("/deleteTrackPlaylist", response_model=TracksPlaylistsRead)
 async def delete_track_playlist(data: TracksPlaylistsDelete):
     """Эндпоинт для удаления трека из плейлиста"""
@@ -118,5 +117,7 @@ async def delete_track_playlist(data: TracksPlaylistsDelete):
     track_playlist = await TracksPlaylistsDAO.find_one_or_none(**tp_filter)
     if not track_playlist:
         raise NoTrackPlaylistException
+    
+    track_playlist = await TracksPlaylistsDAO.delete(track_playlist.id)
 
     return track_playlist

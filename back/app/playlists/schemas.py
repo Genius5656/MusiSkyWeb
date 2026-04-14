@@ -4,18 +4,17 @@ from fastapi import UploadFile, File
 
 
 class PlaylistsCreate(BaseModel):
-    author_id: int
     title: str = Field(..., min_length=1, max_length=50)
-    file: UploadFile | None = None
+    file: Optional[UploadFile] = None
     privacy: bool
 
 
 class PlaylistsRead(BaseModel):
     id: int
-    yt_id: str
+    yt_id: Optional[str]
     author_id: int
     title: str
-    image_url: str
+    img_url: Optional[str]
     privacy: bool
     can_edit: bool
 
@@ -25,5 +24,5 @@ class PlaylistsRead(BaseModel):
 
 class PlaylistsUpdate(BaseModel):
     title: str = Field(..., min_length=1, max_length=50)
-    file: UploadFile | None = None
+    file: Optional[UploadFile] = None
     privacy: bool

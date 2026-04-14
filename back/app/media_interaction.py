@@ -143,8 +143,15 @@ def delete_file_by_path(file_path: str) -> bool:
         HTTPException: При ошибках доступа или других проблемах
     """
     try:
-        # Преобразуем строку в Path объект
-        path = Path(file_path)
+        if not file_path:
+            return False
+
+        try:
+            # Преобразуем строку в Path объект
+            path = Path(file_path)
+        except:
+            print("Не удалось преобразовать строку в путь")
+            return False
         
         # Проверяем существует ли файл
         if not path.exists():

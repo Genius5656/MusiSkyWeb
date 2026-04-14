@@ -16,7 +16,7 @@ async def get_playlists_by_user_id(current_user: User = Depends(get_current_user
     """Эндпоинт для получения всех плейлистов пользователя"""
 
     user_playlist_all = await UsersPlaylistsDAO.find_all(user_id=current_user.id)
-    sorted_tp_list = sorted(user_playlist_all, key=lambda trackPlaylist: trackPlaylist['position'])
+    sorted_tp_list = sorted(user_playlist_all, key=lambda userPlaylist: userPlaylist.position)
 
     playlists_list = []
     for user_playlist in sorted_tp_list:
@@ -81,16 +81,18 @@ async def update_playlists_position(data: UsersPlaylistsUpdate, current_user: Us
 
     old_pos = db_playlist_user.position
     new_pos = data.position
+    print(old_pos)
+    print(new_pos)
 
     try:
         if new_pos < old_pos:
             for playlist_user in all_playlist_users:
                 if (playlist_user.position >= new_pos) and (playlist_user.position < old_pos):
-                    user_playlist_update = await UsersPlaylistsDAO.update(playlist_user, {'postion': (playlist_user.position + 1)})
+                    await UsersPlaylistsDAO.update(playlist_user, {'position': playlist_user.position + 1})
         else:
             for playlist_user in all_playlist_users:
-                if (playlist_user.position > new_pos) and (playlist_user.position <= old_pos):
-                    user_playlist_update = await UsersPlaylistsDAO.update(playlist_user, {'postion': (playlist_user.position - 1)})
+                if (playlist_user.position > old_pos) and (playlist_user.position <= new_pos):
+                    await UsersPlaylistsDAO.update(playlist_user, {'position': playlist_user.position - 1})
 
     except Exception as e:
         print(f"/updatePlaylistsPosition Exception: {str(e)}")
@@ -121,11 +123,10 @@ async def delete_user_playlist(playlist_id: int, current_user: User = Depends(ge
     if not user_playlist:
         raise NoUserPlaylistException
     
-    user_playlist = await UsersPlaylistsDAO.delete(user_playlist.id)
     playlist = await PlaylistsDAO.find_one_or_none_by_id(playlist_id)
     is_author = playlist.author_id == current_user.id
-
     if is_author:
         playlist = await PlaylistsDAO.delete(playlist_id)
 
+    user_playlist = await UsersPlaylistsDAO.delete(user_playlist.id)
     return user_playlist

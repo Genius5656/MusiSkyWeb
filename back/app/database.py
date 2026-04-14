@@ -20,7 +20,11 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
     cursor.execute('PRAGMA foreign_keys=ON')
     cursor.close()
 
-async_session_maker = async_sessionmaker(engine, class_=AsyncSession)
+async_session_maker = async_sessionmaker(
+    engine, 
+    class_=AsyncSession, 
+    expire_on_commit=False
+    )
 
 
 class Base(AsyncAttrs, DeclarativeBase):

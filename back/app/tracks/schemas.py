@@ -12,7 +12,7 @@ class TracksRead(BaseModel):
     id: int
     yt_id: str
     track_url: str
-    image_url: str
+    img_url: str
     title: str
     artist: str
     album: str
