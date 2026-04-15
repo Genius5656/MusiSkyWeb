@@ -133,5 +133,31 @@ class BaseDAO:
             await session.delete(obj)
             await session.commit()
             return obj
+    
+    """ @classmethod
+    async def delete(cls, data_id: int):
+        async with async_session_maker() as session:
+            # Строим запрос с загрузкой всех связей
+            query = select(cls.model).filter_by(id=data_id)
+            
+            # Добавляем загрузку связей в зависимости от модели
+            if cls.model.__name__ == "User":
+                query = query.options(
+                    selectinload(cls.model.playlists_associations)
+                )
+            elif cls.model.__name__ == "Playlists":
+                query = query.options(
+                    selectinload(cls.model.tracks_associations)
+                )
+            
+            result = await session.execute(query)
+            obj = result.scalar_one_or_none()
+            
+            if obj is None:
+                return None
+            
+            await session.delete(obj)
+            await session.commit()
+            return obj """
         
     

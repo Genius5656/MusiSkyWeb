@@ -7,7 +7,7 @@ from app.users_tracks.dao import UsersTracksDAO
 from app.tracks.schemas import TracksRead
 from app.tracks.dao import TracksDAO
 from app.users.dependensies import get_current_user
-from app.users.models import User
+from app import User
 
 router = APIRouter(prefix='/users_tracks', tags=['UsersTracks'])
 

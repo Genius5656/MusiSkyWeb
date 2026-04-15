@@ -118,6 +118,6 @@ async def delete_track_playlist(data: TracksPlaylistsDelete):
     if not track_playlist:
         raise NoTrackPlaylistException
     
-    track_playlist = await TracksPlaylistsDAO.delete(track_playlist.id)
+    await TracksPlaylistsDAO.delete(track_playlist.id)
 
-    return track_playlist
+    return {"message": "Deleted successfully"}

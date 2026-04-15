@@ -1,5 +1,5 @@
 from app.dao.base import BaseDAO
-from app.users.models import User, BanList
+from app import User, BanList
 
 
 class UsersDAO(BaseDAO):

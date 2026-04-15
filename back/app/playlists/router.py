@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from app.media_interaction import save_image, convert_image_to_bytes, delete_file_by_path
 from app.exceptions import NoPlaylistException, FilesNotAllowedException
 from app.users.dependensies import get_current_user
-from app.users.models import User
+from app import User
 from app.playlists.dao import PlaylistsDAO
 from app.tracks.dao import TracksDAO
 from app.tracks_playlists.dao import TracksPlaylistsDAO
@@ -170,6 +170,6 @@ async def delete_playlist(playlist_id: int):
     if not cover_del:
         print("Обложка отсутствует")
     
-    playlist = await PlaylistsDAO.delete(playlist_id)
+    await PlaylistsDAO.delete(playlist_id)
         
-    return playlist
+    return {"message": "Deleted successfully"}

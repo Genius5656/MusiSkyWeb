@@ -1,5 +1,5 @@
 from app.dao.base import BaseDAO
-from app.users_tracks.models import UsersTracks
+from app import UsersTracks
 
 
 class UsersTracksDAO(BaseDAO):

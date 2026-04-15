@@ -137,5 +137,5 @@ async def delete_track(track_id: int):
     if not cover_del:
         print("Обложка отсутствует")
 
-    track = await TracksDAO.delete(track_id)
-    return track
+    await TracksDAO.delete(track_id)
+    return {"message": "Deleted successfully"}

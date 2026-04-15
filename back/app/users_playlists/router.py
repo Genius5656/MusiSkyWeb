@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from app.exceptions import NoPlaylistException, NoUserException, NoUserPlaylistException
 from app.users_playlists.dao import UsersPlaylistsDAO
 from app.users.dependensies import get_current_user
-from app.users.models import User
+from app import User
 from app.users.dao import UsersDAO
 from app.playlists.dao import PlaylistsDAO
 from app.users_playlists.schemas import UsersPlaylistsRead, UsersPlaylistsUpdate
@@ -110,7 +110,7 @@ async def update_playlists_position(data: UsersPlaylistsUpdate, current_user: Us
     )
 
 
-@router.delete("/deleteUserPlaylist", response_model=UsersPlaylistsRead)
+@router.delete("/deleteUserPlaylist")
 async def delete_user_playlist(playlist_id: int, current_user: User = Depends(get_current_user)):
     """ Эндпоинт для удаления плейлиста пользователя """
     
@@ -128,5 +128,5 @@ async def delete_user_playlist(playlist_id: int, current_user: User = Depends(ge
     if is_author:
         playlist = await PlaylistsDAO.delete(playlist_id)
 
-    user_playlist = await UsersPlaylistsDAO.delete(user_playlist.id)
-    return user_playlist
+    await UsersPlaylistsDAO.delete(user_playlist.id)
+    return {"message": "Deleted successfully"}

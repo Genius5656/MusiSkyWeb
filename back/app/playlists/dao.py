@@ -1,5 +1,5 @@
 from app.dao.base import BaseDAO
-from app.playlists.models import Playlists
+from app import Playlists
 
 
 class PlaylistsDAO(BaseDAO):

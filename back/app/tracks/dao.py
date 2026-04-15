@@ -1,5 +1,5 @@
 from app.dao.base import BaseDAO
-from app.tracks.models import Tracks
+from app import Tracks
 
 
 class TracksDAO(BaseDAO):

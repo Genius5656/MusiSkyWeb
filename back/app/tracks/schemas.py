@@ -10,12 +10,12 @@ class TracksCreate(BaseModel):
 
 class TracksRead(BaseModel):
     id: int
-    yt_id: str
-    track_url: str
-    img_url: str
-    title: str
-    artist: str
-    album: str
+    yt_id: Optional[str]
+    track_url: Optional[str]
+    img_url: Optional[str]
+    title: Optional[str]
+    artist: Optional[str]
+    album: Optional[str]
 
     class Config:
         from_attributes = True

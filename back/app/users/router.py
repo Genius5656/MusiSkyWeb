@@ -6,7 +6,7 @@ from app.exceptions import UserAlreadyExistsException, IncorrectEmailOrPasswordE
     NoUserException, UserAlreadyBannedException, NoBannedUserException, UserInBanException
 from app.users.auth import get_password_hash, authenticate_user, create_access_token
 from app.users.dependensies import get_current_user
-from app.users.models import User
+from app import User
 from app.users.dao import UsersDAO, BanListDAO
 from app.playlists.dao import PlaylistsDAO
 from app.users.schemas import SUserRegister, SUserAuth

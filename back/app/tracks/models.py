@@ -1,7 +1,9 @@
 from sqlalchemy import String, Integer, Boolean
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database import Base
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
+if TYPE_CHECKING:
+    from app import TracksPlaylists
 
 
 class Tracks(Base):
@@ -18,3 +20,9 @@ class Tracks(Base):
     views_date: Mapped[int] = mapped_column(String, nullable=False) """
     """ privacy: Mapped[bool] = mapped_column(Boolean, nullable=False) """
 
+    playlists_associations: Mapped[list["TracksPlaylists"]] = relationship(
+        "TracksPlaylists",
+        back_populates="track",
+        cascade="all, delete-orphan",
+        passive_deletes=False
+    )
