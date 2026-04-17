@@ -537,8 +537,6 @@ body {
     filter: brightness(0) saturate(100%) invert(74%) sepia(36%) saturate(727%) hue-rotate(78deg) brightness(99%) contrast(96%);
 }
 
-
-
 .tracklist {
     display: flex;
     flex-direction: column;

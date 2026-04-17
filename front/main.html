@@ -55,7 +55,7 @@
 
     <!-- основная область с двумя страницами -->
     <main class="main-content" id="mainContent">
-        <div id="homePage" class="page">
+        <div id="homePage" class="page active-page">
             <div class="welcome-section">
                 <h1 class="welcome-title">Добрый вечер</h1>
                 <div class="greeting-badge" id="greetingBadge">
@@ -122,12 +122,11 @@
         </div>
 
         <!-- Страница "Любимые треки" (Домой) -->
-        <div id="favoritesPage" class="page active-page">
+        <div id="favoritesPage" class="page">
             <div class="playlist-header">
                 <div class="title-section">
                     <div class="title-badge">
                         <h1>Любимые треки</h1>
-                        <img src="images/edit-playlist.svg" alt="edit">
                     </div>
                     <p>Коллекция избранной музыки · 100 треков · 00:00:00 минут</p>
                 </div>
@@ -279,6 +278,6 @@
     </div>
 </div>
 
-<script src="main.js"></script>
+<script type="module" src="js/main.js"></script>
 </body>
 </html>

@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MusiSky · Исполнитель</title>
+    <style>
+        /* ----- ОБЩИЕ СТИЛИ (точно как выше) ----- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(145deg, #0a0c12 0%, #0f111a 100%);
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            color: #eef2ff; height: 100vh; overflow: hidden;
+        }
+        .app { display: flex; height: 100vh; width: 100%; max-width: 100%; position: relative; overflow: hidden; }
+        .sidebar {
+            width: 280px; flex-shrink: 0;
+            background: linear-gradient(165deg, rgba(25, 28, 42, 0.98) 0%, rgba(18, 20, 32, 0.98) 100%);
+            backdrop-filter: blur(12px); border-right: 1px solid rgba(101, 255, 160, 0.25);
+            box-shadow: 8px 0 32px rgba(0, 0, 0, 0.4); padding: 28px 20px 0 24px;
+            display: flex; flex-direction: column; gap: 36px; overflow-y: auto; z-index: 2;
+        }
+        .logo-area { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+        .nav-menu { display: flex; flex-direction: column; gap: 12px; flex: 1; min-height: 0; }
+        .nav-item {
+            display: flex; align-items: center; gap: 14px; padding: 10px 16px; border-radius: 12px;
+            font-weight: 500; font-size: 15px; color: #b4bbd9; transition: all 0.2s; cursor: pointer;
+            background: transparent; border: none; width: 100%; text-align: left; font-family: inherit;
+        }
+        .nav-item:hover { background: rgba(101, 255, 160, 0.12); color: #e2ffe8; }
+        .nav-item .image { width: 20px; height: 20px; filter: brightness(0) saturate(100%) invert(75%) sepia(8%) saturate(500%) hue-rotate(200deg); }
+        .nav-item:hover .image { filter: brightness(0) saturate(100%) invert(85%) sepia(60%) saturate(800%) hue-rotate(70deg) brightness(1.1); }
+        .playlists-container { display: flex; flex-direction: column; gap: 12px; max-height: calc(100vh - 380px); overflow-y: auto; }
+        .nav-item.special { margin-top: auto; }
+        .nav-item-pad { width: 30px; height: 30px; } .nav-item-pad img { width: 100%; height: 100%; border-radius: 5px; }
+        .menu-user { margin-top: auto; font-size: 11px; color: #b4bbd9; display: flex; flex-direction: column; }
+        .user-item { display: flex; align-items: center; padding: 30px 16px; color: #b4bbd9; border: none; padding-top: 16px; transition: all 0.2s; cursor: pointer; background: transparent; width: 100%; }
+        .user-item:hover { color: #65FFA0; } .user-item img { filter: brightness(0) saturate(100%) invert(75%) sepia(8%) saturate(500%) hue-rotate(200deg); margin-right: 6px; }
+        .user-item:hover img { filter: brightness(0) saturate(100%) invert(85%) sepia(60%) saturate(800%) hue-rotate(70deg) brightness(1.1); }
+        .divider { height: 1px; background: rgba(101, 255, 160, 0.25); margin: 8px 0 12px 0; }
+        .playlists-title { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; color: #6d7490; margin-bottom: 12px; padding-left: 8px; }
+        .nav-item.active { background: rgba(101, 255, 160, 0.18); color: #ccffdd; border-left: 2px solid #65FFA0; }
+        /* .page { flex: 1; padding: 32px 36px; overflow-y: auto; scrollbar-width: thin; background: rgba(10, 12, 18, 0.3); } */
+
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px 40px 40px 40px;
+            scroll-behavior: smooth;
+            transition: margin-right 0.3s ease;
+        }
+
+        .main-content.player-open {
+            margin-right: 380px;
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .page.active-page {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ----- ИСПОЛНИТЕЛЬ ----- */
+        .artist-header { 
+            display: flex; 
+            gap: 28px; 
+            margin-bottom: 32px; 
+            align-items: center;
+        }
+
+        .artist-photo {
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            border: 3px solid #65FFA0;
+            box-shadow: 0 15px 35px #00000055;
+            background: #1e3a2f;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .artist-photo-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .artist-note-icon {
+            width: 120px;
+            height: 120px;
+            color: #65FFA0;
+        }
+
+        .artist-info h1 { 
+            font-size: 58px; 
+            font-weight: 800; 
+            letter-spacing: 1px; 
+            background: linear-gradient(135deg, #fff, #65FFA0); 
+            -webkit-background-clip: text; 
+            background-clip: text; 
+            color: transparent; 
+        }
+
+        .subscribers { 
+            font-size: 16px; 
+            color: #b4bbd9; 
+            margin: 6px 0 12px; 
+        }
+
+        .bio { 
+            max-width: 600px; 
+            color: #ccd6f0; 
+            line-height: 1.5; 
+            margin-bottom: 16px; 
+        }
+
+        /* .btn-outline {
+            background: transparent; 
+            border: 1px solid #65FFA0; 
+            color: #65FFA0;
+            padding: 8px 18px; 
+            border-radius: 30px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: 0.2s;
+        }
+
+        .btn-outline:hover { 
+            background: #65FFA020; 
+        } */
+
+        .section-title { 
+            font-size: 24px; 
+            font-weight: 700; 
+            margin: 17px 0 18px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+        }
+
+        .see-all-btn {
+            background: transparent;
+            border: none;
+            color: #65FFA0;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 20px;
+            transition: all 0.2s;
+        }
+
+        .see-all-btn:hover {
+            background: rgba(101, 255, 160, 0.15);
+            transform: scale(1.02);
+        }
+
+        .albums-grid { 
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .album-card {
+            width: 160px; 
+            background: rgba(25, 28, 42, 0.9); 
+            padding: 16px 12px 18px; 
+            border-radius: 12px;
+            border: 1px solid rgba(101,255,160,0.2); 
+            transition: 0.2s; 
+            cursor: pointer;
+        }
+
+        .album-card:hover { 
+            background: #1e2a38; 
+            border-color: #65FFA0; 
+        }
+
+        .album-cover-sm { 
+            width: 100%; 
+            aspect-ratio: 1/1; 
+            background: #1e3a2f; 
+            border-radius: 8px; 
+            margin-bottom: 10px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+
+        .track-item { /* тот же */ 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            padding: 12px 16px; 
+            border-radius: 14px; 
+            background: rgba(25, 28, 42, 0.98); 
+            transition: all 0.2s; 
+            border: 1px solid transparent; 
+            cursor: pointer; 
+        }
+
+        .track-item:hover { 
+            background: rgba(35, 39, 55, 0.8); 
+            border-color: rgba(101, 255, 160, 0.5); 
+            transform: translateX(4px); 
+        }
+
+        .track-container { 
+            display: flex; 
+            align-items: center; 
+        }
+
+        .track-image { 
+            width: 50px; 
+            height: 50px; 
+            margin-right: 15px; 
+        }
+
+        .track-info { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 4px; 
+        }
+
+        .track-name { 
+            font-weight: 600; 
+            font-size: 16px; 
+        }
+
+        .track-artist { 
+            font-size: 13px; 
+            color: #8f97b5; 
+        }
+
+        .track-time { 
+            font-family: monospace; 
+            color: #b5ffd0; 
+            background: rgba(101, 255, 160, 0.12); 
+            padding: 4px 10px; 
+            border-radius: 28px; 
+        }
+
+        .top-tracks { 
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 20px;
+            margin-bottom: 10px; 
+        }
+
+        .tracklist-header {
+            display: grid;
+            /* grid-template-columns: 30px 1fr 100px 80px; */
+            padding: 5px 16px;
+            color: #8f97b5;
+            font-size: 13px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            margin-bottom: 8px;
+        }
+
+        .playlist-card {
+            background: rgba(25, 28, 42, 0.8);
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(101, 255, 160, 0.1);
+            text-align: center;
+        }
+
+        .playlist-card:hover {
+            background: rgba(35, 39, 55, 0.9);
+            border-color: rgba(101, 255, 160, 0.3);
+            transform: translateY(-4px);
+        }
+
+        .playlist-card-art {
+            width: 100%;
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #3a5f4a, #1e3a2a);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .playlist-card-art svg {
+            width: 40px;
+            height: 40px;
+            opacity: 0.7;
+        }
+
+        .playlist-card .playlist-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .playlist-card .playlist-count {
+            font-size: 12px;
+            color: #8e94b0;
+        }
+
+        @media (max-width: 768px) {
+            .tracks-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+            
+            .playlists-grid {
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            }
+            
+            .quick-access {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .welcome-title {
+                font-size: 24px;
+            }
+        }
+
+        /* кастомный скроллбар */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #171a27;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3d5e4a;
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #65FFA0;
+        }
+
+        @media (max-width: 900px) {
+            .sidebar {
+                width: 240px;
+            }
+            .album-header {
+                padding: 20px;
+            }
+            .player-panel {
+                width: 320px;
+            }
+            .main-content.player-open {
+                margin-right: 320px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="app">
+    <!-- МЕНЮ идентичное -->
+    <aside class="sidebar">
+        <div class="logo-area">
+            <img src="images/logo.svg" alt="Логотип" style="width: 32px; height: 32px;" onerror="this.style.opacity=0.5">
+            <span style="font-weight: 700; font-size: 20px; letter-spacing: -0.3px; background: linear-gradient(135deg, #fff, #65FFA0); background-clip: text; -webkit-background-clip: text; color: transparent;">MusiSky</span>
+        </div>
+        <div class="nav-menu">
+            <button class="nav-item" type="button" onclick="window.location.href='album.html'">
+                <img class="image" src="images/home.svg" alt="home icon" width="20" height="20">
+                <span>Домой</span>
+            </button>
+            <button class="nav-item" id="searchNavBtn" type="button">
+                <img class="image" src="images/loupe.svg" alt="search icon" width="20" height="20">
+                <span>Поиск</span>
+            </button>
+            <div class="divider"></div>
+            <div class="playlists-title">ВАШИ ПЛЕЙЛИСТЫ</div>
+            <div class="playlists-container">
+                <button class="nav-item"><div class="nav-item-pad"><img src="images/pad.svg"></div><span>Любимые треки</span></button>
+                <button class="nav-item"><img class="image" src="images/pen.svg"><span>Новый плейлист 1</span></button>
+            </div>
+            <button class="nav-item special"><img class="image" src="images/plus.svg"><span>Создать плейлист</span></button>
+        </div>
+        <div class="menu-user">
+            <div class="divider"></div>
+            <button class="user-item"><img src="images/user.svg" width="16"><span>Профиль</span></button>
+        </div>
+    </aside>
+
+    <!-- КОНТЕНТ ИСПОЛНИТЕЛЯ -->
+    <main class="main-content" id="mainContent">
+        <div class="page active-page">
+            <div class="artist-header">
+                <div class="artist-photo">
+                    <img class="artist-photo-img" src="https://avatars.mds.yandex.net/i?id=1beef03c75bcb66aec4feae2d1373d04dc449a8a-7066306-images-thumbs&n=13" alt="Фото исполнителя" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                    <svg class="artist-note-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" style="display: none;">
+                        <path d="M9 18V5l12-2v13" />
+                        <circle cx="6" cy="18" r="3" />
+                        <circle cx="18" cy="16" r="3" />
+                    </svg>
+                </div>
+                <div class="artist-info">
+                    <h1>The Weeknd</h1>
+                    <div class="subscribers">🎧 24 831 220 ежемесячных слушателей</div>
+                    <div class="bio">Абель Тесфайе — канадский певец, автор песен и продюсер. Известен своим уникальным звучанием и хитами, возглавляющими чарты.</div>
+                    <!-- <button class="btn-outline">✚ Подписаться</button> -->
+                </div>
+            </div>
+
+            <div class="tracklist-header"></div>
+
+            <!-- Топ 10 треков + "Открыть все" (JS эмулирует переход) -->
+            <div class="section-title">
+                Топ треки
+                <span class="see-all-btn" id="showAllTracksBtn">Открыть все треки</span>
+            </div>
+            <div class="top-tracks" id="top10Container"></div>
+
+            <!-- Популярные альбомы -->
+            <div class="section-title">
+                Популярные альбомы
+                <span class="see-all-btn" id="showAllAlbumsBtn">Смотреть все</span>
+            </div>
+            <div class="albums-grid" id="albumsGrid"></div>
+
+            <!-- Синглы -->
+            <div class="section-title" style="margin-top: 30px;">
+                Синглы и EP
+                <span class="see-all-btn" id="showAllSinglesBtn">Смотреть все</span>
+            </div>
+            <div class="albums-grid" id="singlesGrid"></div>
+        </div>
+    </main>
+</div>
+
+<script>
+    (function(){
+        // Заполняем топ-10 треков
+        const container = document.getElementById('top10Container');
+        const tracks = [
+            "Blinding Lights", "Starboy", "Save Your Tears", "The Hills", "Can't Feel My Face",
+            "I Feel It Coming", "Die For You", "Call Out My Name", "Heartless", "Often"
+        ];
+        for(let i=0; i<10; i++){
+            const div = document.createElement('div');
+            div.className = 'track-item';
+            div.innerHTML = `
+                <div class="track-container">
+                    <div class="track-image"><img src="images/pad.svg" style="width:50px; border-radius:8px;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'50\\' height=\\'50\\'%3E%3Crect width=\\'50\\' height=\\'50\\' fill=\\'%231e3a2f\\'/%3E%3C/svg%3E'"></div>
+                    <div class="track-info"><div class="track-name">${tracks[i]}</div><div class="track-artist">The Weeknd</div></div>
+                </div>
+                <div class="track-time">${Math.floor(Math.random()*2+2)}:${Math.floor(Math.random()*60).toString().padStart(2,'0')}</div>`;
+            container.appendChild(div);
+        }
+
+        // Альбомы (4 шт)
+        const albums = ['After Hours', 'Starboy', 'Dawn FM', 'Beauty Behind ...'];
+        const grid = document.getElementById('albumsGrid');
+        albums.forEach(name => {
+            const card = document.createElement('div');
+            card.innerHTML = `
+                <div class="playlist-card" data-playlist-id="1">
+                    <div class="playlist-card-art" style="background: linear-gradient(135deg, #1e3a2a, #1e3a2acc);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" />
+                            <line x1="9" y1="9" x2="15" y2="15" />
+                            <line x1="15" y1="9" x2="9" y2="15" />
+                        </svg>
+                    </div>
+                    <div class="playlist-name">${name}</div>
+                    <div class="playlist-count">10 треков</div>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+
+        const singles = ['Take My Breath', 'After Hours (Remixes)', 'King of the Fall', 'My Dear Melancholy'];
+        const sGrid = document.getElementById('singlesGrid');
+        singles.forEach(name => {
+            const card = document.createElement('div');
+            card.innerHTML = `
+                <div class="playlist-card" data-playlist-id="1">
+                    <div class="playlist-card-art" style="background: linear-gradient(135deg, #1e3a2a, #1e3a2acc);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" />
+                            <line x1="9" y1="9" x2="15" y2="15" />
+                            <line x1="15" y1="9" x2="9" y2="15" />
+                        </svg>
+                    </div>
+                    <div class="playlist-name">${name}</div>
+                    <div class="playlist-count">10 треков</div>
+                </div>
+            `;
+            sGrid.appendChild(card);
+        });
+
+        // Обработчики кнопок (JS-переходы)
+        document.getElementById('showAllTracksBtn').addEventListener('click', ()=>{
+            alert('Переход на страницу со всеми треками исполнителя (функционал JS)');
+            // тут мог бы быть window.location = 'artist-all-tracks.html'
+        });
+        document.getElementById('showAllAlbumsBtn').addEventListener('click', ()=>{
+            alert('Открыть дискографию (все альбомы)');
+        });
+        document.getElementById('showAllSinglesBtn').addEventListener('click', ()=>{
+            alert('Открыть все синглы и EP');
+        });
+    })();
+</script>
+</body>
+</html>
