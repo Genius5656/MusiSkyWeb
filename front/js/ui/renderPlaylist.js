@@ -24,17 +24,17 @@ export function renderPlaylistPage(playlist) {
             <div class="title-section">
                 <div class="title-badge">
                     <h1>${escapeHtml(playlist.name)}</h1>
-                    <img src="../../images/edit-playlist.svg" alt="edit">
+                    <img src="images/edit-playlist.svg" alt="edit">
                 </div>
                 <p>Коллекция избранной музыки · ${playlist.tracks.length} треков · ${totalTimeString} минут</p>
             </div>
             <div class="edit-buttons">
                 <div class="edit-button" style="padding: 10px 21px;">
-                    <img src="../../images/reverse.svg" alt="mix" width="20px" height="15px">
+                    <img src="images/reverse.svg" alt="mix" width="20px" height="15px">
                     <span style="margin-top: -2px;">Перемешать</span>
                 </div>
                 <div class="edit-button" style="padding-top: 12px;">
-                    <img src="../../images/edit-tracks.svg" alt="edit" width="20px" height="15px">
+                    <img src="images/edit-tracks.svg" alt="edit" width="20px" height="15px">
                     <span style="margin-top: -5px;">Редактировать</span>
                 </div>
             </div>
@@ -42,15 +42,15 @@ export function renderPlaylistPage(playlist) {
         <div class="tracklist" id="playlist_tracklist_${playlist.id}"></div>
         <div class="extra-row">
             <div class="extra-badge">
-                <img src="../../images/music_note.svg" alt="note" width="22" height="22" style="filter: invert(0.7);">
+                <img src="images/music_note.svg" alt="note" width="22" height="22" style="filter: invert(0.7);">
                 <span class="extra-text">New track</span>
             </div>
             <div class="extra-badge">
-                <img src="../../images/performance.svg" alt="performance" width="22" height="22" style="filter: invert(0.7);">
+                <img src="images/performance.svg" alt="performance" width="22" height="22" style="filter: invert(0.7);">
                 <span class="extra-text">New performance</span>
             </div>
             <div class="extra-badge">
-                <img src="../../images/album.svg" alt="album" width="22" height="22" style="filter: invert(0.7);">
+                <img src="images/album.svg" alt="album" width="22" height="22" style="filter: invert(0.7);">
                 <span class="extra-text">New album</span>
             </div>
         </div>
@@ -100,7 +100,7 @@ export function createPlaylistButton(playlist) {
     button.setAttribute('data-playlist-id', playlist.id);
     button.type = 'button';
     button.innerHTML = `
-        <img class="image" src="../../images/pen.svg" alt="playlist icon" width="20" height="20">
+        <img class="image" src="images/pen.svg" alt="playlist icon" width="20" height="20">
         <span>${escapeHtml(playlist.name)}</span>
     `;
     button.addEventListener('click', () => switchToPlaylist(playlist));

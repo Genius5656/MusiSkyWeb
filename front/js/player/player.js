@@ -29,7 +29,7 @@ function stopPlaybackSimulation() {
         playInterval = null;
     }
     isPlaying = false;
-    if (playPauseBtn) playPauseImg.src = '../../images/play.svg';
+    if (playPauseBtn) playPauseImg.src = 'images/play.svg';
 }
 
 function updateProgressDisplay(currentSec, totalSec) {
@@ -62,7 +62,7 @@ function startPlaybackSimulation(durationSec) {
         }
     }, 500);
     isPlaying = true;
-    if (playPauseBtn) playPauseImg.src = '../../images/pause.svg';
+    if (playPauseBtn) playPauseImg.src = 'images/pause.svg';
 }
 
 // --- Публичные функции плеера ---

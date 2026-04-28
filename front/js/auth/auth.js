@@ -58,7 +58,7 @@ export function showLoginForm() {
 
 export function updateProfileButton(username) {
     if (profileBtn) {
-        profileBtn.innerHTML = `<img src="../../images/user.svg" alt="user" width="16" height="16" style="opacity:0.6; margin-right: 6px;"> ${escapeHtml(username)}`;
+        profileBtn.innerHTML = `<img src="images/user.svg" alt="user" width="16" height="16" style="opacity:0.6; margin-right: 6px;"> ${escapeHtml(username)}`;
     }
 }
 
