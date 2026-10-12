@@ -1,5 +1,7 @@
-##Миграция alembic
-###Работа с консолью
+## Миграция alembic
+
+### Работа с консолью
+
 ```bash
 cd app
 alembic init -t async migration
@@ -12,7 +14,8 @@ script_location = migration
 ```python
 script_location = app/migration
 ```
-###Работа с файлом
+### Работа с файлом
+
 В app/migration/emv.py заменить
 ```python
 import asyncio
@@ -59,14 +62,16 @@ if config.config_file_name is not None:
 target_metadata = Base.metadata
 ```
 
-###Коммит и применение изменений
+### Коммит и применение изменений
+
 ```bash
 cd ../
 alembic revision --autogenerate -m "Initial revision"
 alembic upgrade head
 ```
 
-###Запуск
+### Запуск
+
 ```bash
 uvicorn app.main:app --reload
 ```
